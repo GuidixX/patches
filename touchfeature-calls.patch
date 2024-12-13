@@ -1,4 +1,4 @@
-From 785ef13d82c001fd758042c0ef2ec2e605ab1d96 Mon Sep 17 00:00:00 2001
+From 7a43fc3ed6e307ea7cf987567bada011d58840f9 Mon Sep 17 00:00:00 2001
 From: AdarshGrewal <adarshgrewal@gmail.com>
 Date: Sat, 10 Aug 2024 14:08:50 +0530
 Subject: [PATCH] DNM: SystemUI: Add xiaomi fingerprintextension and
@@ -9,28 +9,28 @@ Subject: [PATCH] DNM: SystemUI: Add xiaomi fingerprintextension and
 Change-Id: I7e14868f03c7417a413388b0ecb3ca8430165aed
 ---
  packages/SystemUI/Android.bp                  |  2 +
- .../systemui/biometrics/UdfpsController.java  | 55 +++++++++++++++++++
+ .../systemui/biometrics/UdfpsController.java  | 54 +++++++++++++++++++
  services/core/Android.bp                      |  2 +
- 3 files changed, 59 insertions(+)
+ 3 files changed, 58 insertions(+)
 
 diff --git a/packages/SystemUI/Android.bp b/packages/SystemUI/Android.bp
-index f0c864efae86..5413881e0869 100644
+index 3a7275a877a7..d4cd03f421a4 100644
 --- a/packages/SystemUI/Android.bp
 +++ b/packages/SystemUI/Android.bp
-@@ -524,6 +524,8 @@ android_library {
-         "androidx.compose.animation_animation-graphics",
+@@ -590,6 +590,8 @@ android_library {
          "androidx.lifecycle_lifecycle-viewmodel-compose",
-         "device_policy_aconfig_flags_lib",
+         "bcsmartspace-google",
+         "vendor.lineage.powershare-V1.0-java",
 +        "vendor.xiaomi.hardware.fingerprintextension-V1-java",
 +        "vendor.xiaomi.hw.touchfeature-V1-java"
      ],
      libs: [
          "keepanno-annotations",
 diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
-index a4c63012b880..b982697159a8 100644
+index a393574168dd..e2cb7b394843 100644
 --- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
 +++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
-@@ -137,6 +137,9 @@
+@@ -128,6 +128,9 @@
  
  import javax.inject.Inject;
  
@@ -40,7 +40,7 @@ index a4c63012b880..b982697159a8 100644
  /**
   * Shows and hides the under-display fingerprint sensor (UDFPS) overlay, handles UDFPS touch events,
   * and toggles the UDFPS display mode.
-@@ -201,6 +204,9 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+@@ -191,6 +194,9 @@ public class UdfpsController implements DozeReceiver, Dumpable {
      private final boolean mIgnoreRefreshRate;
      private final KeyguardTransitionInteractor mKeyguardTransitionInteractor;
  
@@ -50,9 +50,9 @@ index a4c63012b880..b982697159a8 100644
      // Currently the UdfpsController supports a single UDFPS sensor. If devices have multiple
      // sensors, this, in addition to a lot of the code here, will be updated.
      @VisibleForTesting @NonNull FingerprintSensorPropertiesInternal mSensorProps;
-@@ -305,6 +311,50 @@ public void onConfigChanged(Configuration newConfig) {
-                 }
-             };
+@@ -262,6 +268,50 @@ public void onScreenTurnedOff() {
+         }
+     };
  
 +    private static void xaiomiTouchFeature(int arg) {
 +        try {
@@ -101,33 +101,32 @@ index a4c63012b880..b982697159a8 100644
      @Override
      public void dump(@NonNull PrintWriter pw, @NonNull String[] args) {
          final int touchConfigId = mContext.getResources().getInteger(
-@@ -1292,6 +1342,8 @@ private void onFingerDown(
+@@ -1137,6 +1187,8 @@ private void onFingerDown(
                  }
              }
          }
 +        xaiomiTouchFeature(1);
 +        xiaomiFingerprintExtension(1);
  
-         for (Callback cb : mCallbacks) {
-             cb.onFingerDown();
-@@ -1352,6 +1404,9 @@ private void onFingerUp(
+         if (isOptical()) {
+             for (Callback cb : mCallbacks) {
+@@ -1191,6 +1243,8 @@ private void onFingerUp(
          mOnFingerDown = false;
          unconfigureDisplay(view);
          cancelAodSendFingerUpAction();
-+
 +        xaiomiTouchFeature(0);
 +        xiaomiFingerprintExtension(0);
-     }
- 
-     public boolean isAnimationEnabled() {
+         if (mPowerManagerInternal != null) {
+             mPowerManagerInternal.setPowerMode(PowerManagerInternal.MODE_LAUNCH, false);
+         }
 diff --git a/services/core/Android.bp b/services/core/Android.bp
-index 9c29fd40d846..702b7752cc9d 100644
+index 57afb1302313..ff485c916054 100644
 --- a/services/core/Android.bp
 +++ b/services/core/Android.bp
-@@ -231,6 +231,8 @@ java_library_static {
+@@ -240,6 +240,8 @@ java_library_static {
+         "aconfig_new_storage_flags_lib",
          "powerstats_flags_lib",
-         "vendor.aac.hardware.richtap.vibrator",
-         "vendor.aospa.biometrics.face",
+         "locksettings_flags_lib",
 +        "vendor.xiaomi.hardware.fingerprintextension-V1-java",
 +        "vendor.xiaomi.hw.touchfeature-V1-java",
      ],
